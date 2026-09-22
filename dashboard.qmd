@@ -1,0 +1,62 @@
+---
+title: "2026 ARM Ratings"
+format: 
+  dashboard:
+   orientation: rows
+   theme: flatly
+---
+
+```{r}
+#| label: Load Packages
+#| message: false
+source("data_processing.R")
+library(tidyverse)
+library(ggplot2)
+library(DT)
+```
+
+# OVERVIEW
+
+## Row 1 - Basic Data {height=150px}
+
+### Current Week
+```{r}
+#| content: valuebox
+#| title: CURRENT WEEK
+cur_schedule <- schedule %>% filter(!is.na(home_score))
+cur_week <- max(cur_schedule$week)
+list(value = cur_week)
+```
+
+### Highest Rating
+```{r}
+#| content: valuebox
+#| title: HIGHEST RATING
+highest_rating <- max(final_ratings$total)
+list(value = highest_rating)
+```
+
+### Lowest Rating
+```{r}
+#| content: valuebox
+#| title: LOWEST RATING
+lowest_rating <- min(final_ratings$total)
+list(value = lowest_rating)
+```
+
+### Average Rating
+```{r}
+#| content: valuebox
+#| title: AVERAGE RATING
+avg_rating <- mean(final_ratings$total)
+list(value = round(avg_rating, 2))
+```
+
+## Row 2 - Table of Ratings
+
+### Team Ratings
+```{r}
+#| title: TEAM RATINGS
+datatable(final_ratings)
+```
+
