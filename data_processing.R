@@ -138,7 +138,7 @@ for (i in teams) {
   }
   
   initial_values_removed <- data.frame( # Create df with the initial values
-    team = teams,
+    team = opponents,
     win_pct = win_percentages_removed,
     point_diff = point_diffs_removed,
     off_epa = off_epas_removed,
@@ -164,7 +164,40 @@ sos_ratings <- get_sos_rating(sos)
 final_ratings <- initial_ratings %>% select(-total)
 final_ratings$sos <- sos_ratings
 final_ratings <- final_ratings %>%
-  mutate(total = win_pct + point_diff + off_epa + def_epa + sos) %>%
+  mutate(total = round(win_pct + point_diff + off_epa + def_epa + sos, 2)) %>%
   arrange(-total)
 
+norm_sos <- function(input_df) {
+  teams2 <- input_df$team
+  average_ratings <- c()
+  
+  for (i in teams2) {
+    team_schedule <- get_team_standings(i)
+    opponents <- unique(team_schedule$opponent)
+    sum_ratings <- 0
+    for (j in opponents) {
+      opp_rating <- input_df %>% filter(team == j) %>% pull(unique(total))
+      sum_ratings <- sum_ratings + opp_rating
+    }
+    average_rating <- round(sum_ratings / length(opponents), 2)
+    average_ratings <- c(average_ratings, average_rating)
+  }
+  average_ratings
+  
+  max_avg_rtg <- max(average_ratings)
+  min_avg_rtg <- min(average_ratings)
+  avg_rtg_range <- max_avg_rtg - min_avg_rtg
+  
+  input_df["avg_rtg"] = average_ratings
+  
+  input_df$sos <- round((input_df$avg_rtg - min_avg_rtg) / (avg_rtg_range / 2), 2)
+  
+  input_df$total <- round(input_df$win_pct + input_df$point_diff + input_df$off_epa + input_df$def_epa + input_df$sos, 2)
+  
+  input_df <- input_df %>% arrange(-total) %>% select(-avg_rtg)
+  
+  return(input_df)
+}
 
+final_ratings2 <- norm_sos(final_ratings)
+final_ratings3 <- norm_sos(final_ratings2)

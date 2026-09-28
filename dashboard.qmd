@@ -13,6 +13,7 @@ source("data_processing.R")
 library(tidyverse)
 library(ggplot2)
 library(DT)
+library(nflplotR)
 ```
 
 # OVERVIEW
@@ -32,7 +33,7 @@ list(value = cur_week)
 ```{r}
 #| content: valuebox
 #| title: HIGHEST RATING
-highest_rating <- max(final_ratings$total)
+highest_rating <- max(final_ratings3$total)
 list(value = highest_rating)
 ```
 
@@ -40,7 +41,7 @@ list(value = highest_rating)
 ```{r}
 #| content: valuebox
 #| title: LOWEST RATING
-lowest_rating <- min(final_ratings$total)
+lowest_rating <- min(final_ratings3$total)
 list(value = lowest_rating)
 ```
 
@@ -48,7 +49,7 @@ list(value = lowest_rating)
 ```{r}
 #| content: valuebox
 #| title: AVERAGE RATING
-avg_rating <- mean(final_ratings$total)
+avg_rating <- mean(final_ratings3$total)
 list(value = round(avg_rating, 2))
 ```
 
@@ -57,6 +58,47 @@ list(value = round(avg_rating, 2))
 ### Team Ratings
 ```{r}
 #| title: TEAM RATINGS
-datatable(final_ratings)
+datatable(final_ratings3)
 ```
+
+# GRAPHS
+
+## Row 1 - Tier List
+
+### Team Rating Tiers
+```{r}
+final_ratings_tier <- final_ratings3 %>%
+  mutate(
+    tier = case_when(
+      total >= 7        ~ "7+",
+      total >= 6        ~ "6-7",
+      total >= 5        ~ "5-6",
+      total >= 4        ~ "4-5",
+      total >= 3        ~ "3-4",
+      TRUE              ~ "3-"
+    )
+  )
+```
+```{r}
+final_ratings_tier <- final_ratings_tier %>%
+  group_by(tier) %>%
+  arrange(desc(total)) %>%
+  mutate(
+    xpos = seq_along(team),
+    xpos_text = xpos + 0.25
+  ) %>%
+  ungroup()
+
+ggplot(final_ratings_tier, aes(x = xpos, y = tier)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.07) +
+  geom_text(aes(x = xpos_text, label = total), hjust = -0.25, vjust = -2, size = 3) +
+  scale_y_discrete(limits = rev(levels(final_ratings_tier$tier))) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  labs(x = NULL, y = NULL) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+```
+
 
