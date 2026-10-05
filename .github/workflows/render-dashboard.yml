@@ -25,6 +25,7 @@ jobs:
             any::tidyverse
             any::nflfastR
             any::nflreadr
+            any::nflplotR
             any::DT
             any::knitr
             any::rmarkdown
