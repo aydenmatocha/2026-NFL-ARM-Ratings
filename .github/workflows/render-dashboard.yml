@@ -1,0 +1,44 @@
+name: Render weekly dashboard
+
+on:
+  schedule:
+    # GitHub cron runs in UTC. 11:00 UTC on Tuesday = 7:00 AM EDT / 6:00 AM EST
+    - cron: "0 11 * * 2"
+  workflow_dispatch: # lets you run it manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::tidyverse
+            any::nflfastR
+            any::nflreadr
+            any::DT
+            any::knitr
+            any::rmarkdown
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      # dashboard.qmd sources data_processing.R, so rendering runs your R code too
+      - name: Render dashboard
+        run: quarto render dashboard.qmd
+
+      - name: Commit rendered dashboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dashboard.html dashboard_files
+          git diff --staged --quiet || git commit -m "Weekly dashboard update"
+          git push
