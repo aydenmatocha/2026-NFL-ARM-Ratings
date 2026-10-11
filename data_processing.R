@@ -19,7 +19,7 @@ get_team_standings <- function(team_input) {
     mutate(opponent = ifelse(home_team == team_input, away_team, home_team),
            points = ifelse(home_team == team_input, home_score, away_score),
            opp_points = ifelse(home_team == team_input, away_score, home_score),
-           win = ifelse(points > opp_points, 1, 0)) %>%
+           win = ifelse(points > opp_points, 1, ifelse(points == opp_points, 0.5, 0))) %>%
     select(opponent, points, opp_points, win)
   
   return(team_schedule)
